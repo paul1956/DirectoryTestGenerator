@@ -118,6 +118,7 @@ Partial Class Form1
         Me.RichTextBox1.Size = New System.Drawing.Size(1050, 392)
         Me.RichTextBox1.TabIndex = 1
         Me.RichTextBox1.Text = ""
+        Me.RichTextBox1.WordWrap = False
         '
         'TreeView1
         '

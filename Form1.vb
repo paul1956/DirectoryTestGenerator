@@ -166,19 +166,24 @@ End Namespace
 
     ' Call the procedure using the top nodes of the TreeView.
     Private Sub CreateBody(aTreeView As TreeView, RTB As RichTextBox)
+        Dim nameParts As New SortedDictionary(Of String, String)
         For Each n As TreeNode In aTreeView.Nodes(0).Nodes
-            Me.CreateBodyRecursive(n, RTB)
+            Me.CreateBodyRecursive(n, RTB, nameParts)
+        Next
+
+        For Each kvp As KeyValuePair(Of String, String) In nameParts
+            RTB.AppendText(XCDataToString(_templatePart1Body).Replace("%0", kvp.Key).Replace("%1", kvp.Value))
         Next
     End Sub
 
-    Private Sub CreateBodyRecursive(n As TreeNode, RTB As RichTextBox)
+    Private Sub CreateBodyRecursive(n As TreeNode, RTB As RichTextBox, ByRef NameParts As SortedDictionary(Of String, String))
         If Directory.GetFiles(n.FullPath).Any Then
-            Dim pathParts As String = String.Join(""", """, Me.GetNameParts(n))
-            Dim result As String = XCDataToString(_templatePart1Body).Replace("%0", Me.GetNamePart(n)).Replace("%1", pathParts)
-            RTB.AppendText(result)
+            Dim namePart As String = Me.GetNamePart(n)
+            Dim pathPart As String = String.Join(""", """, Me.GetNameParts(n))
+            NameParts.Add(namePart, pathPart)
         End If
         For Each aNode As TreeNode In n.Nodes
-            Me.CreateBodyRecursive(aNode, RTB)
+            Me.CreateBodyRecursive(aNode, RTB, NameParts)
         Next
     End Sub
 
