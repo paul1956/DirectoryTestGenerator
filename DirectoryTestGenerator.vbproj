@@ -9,6 +9,11 @@
     <MyType>WindowsForms</MyType>
     <OptionStrict>On</OptionStrict>
     <OptionInfer>Off</OptionInfer>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <AssemblyVersion>1.0.0.1</AssemblyVersion>
+    <FileVersion>1.0.0.1</FileVersion>
+    <Authors>Paul M. Cohen</Authors>
+    <Company>Travel By Paul</Company>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

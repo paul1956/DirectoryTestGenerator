@@ -4,7 +4,7 @@
 
 Imports System.Runtime.CompilerServices
 
-Module MenuExtensions
+Friend Module MenuExtensions
 
     <Extension>
     Friend Function IndexOf(ContextMenu As ContextMenuStrip, Text As String, Optional searchAllChildren As Boolean = False) As Integer
