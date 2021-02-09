@@ -177,10 +177,11 @@ End Namespace
     End Sub
 
     Private Sub CreateBodyRecursive(n As TreeNode, RTB As RichTextBox, ByRef NameParts As SortedDictionary(Of String, String))
-        If Directory.GetFiles(n.FullPath).Any Then
+        If Directory.GetFiles(n.FullPath, "*.cs").Any Then
             Dim namePart As String = Me.GetNamePart(n)
             Dim pathPart As String = String.Join(""", """, Me.GetNameParts(n))
             NameParts.Add(namePart, pathPart)
+
         End If
         For Each aNode As TreeNode In n.Nodes
             Me.CreateBodyRecursive(aNode, RTB, NameParts)
