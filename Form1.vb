@@ -33,7 +33,7 @@ Namespace ConvertDirectory.Tests
 
         Public Shared ReadOnly Property EnableRoslynTests() As Boolean
             Get
-                Return Directory.Exists(GetRoslynRootDirectory)
+                Return Directory.Exists(GetRoslynRootDirectory) AndAlso Environment.GetEnvironmentVariable("EnableRoslynTests") = "True"
             End Get
         End Property
 
@@ -67,8 +67,9 @@ Namespace ConvertDirectory.Tests
         ]]>
     Private ReadOnly _templatePart1Body As XCData = <![CDATA[
         <Trait("Category", "SkipWhenLiveUnitTesting")>
-        <ConditionalFact(NameOf(EnableRoslynTests))>
+        <SkippableFact>
         Public Async Function %0ConvertAsync() As Task
+            Skip.IfNot(EnableRoslynTests)
             Assert.True(Await Me.TestProcessDirectoryAsync(Path.Combine(GetRoslynRootDirectory(), "src", "%1")).ConfigureAwait(True), $"Failing file {_lastFileProcessed}")
         End Function
 ]]>
