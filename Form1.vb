@@ -6,6 +6,7 @@ Imports System.ComponentModel
 Imports System.IO
 
 Public Class Form1
+    Public SubStructure As New Dictionary(Of String, (IsSkipFact As Boolean, Reason As String))
 
     Private ReadOnly _templatePart1 As XCData = <![CDATA[' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
@@ -65,12 +66,12 @@ Namespace ConvertDirectory.Tests
             Return Task.FromResult(True)
         End Function
         ]]>
+
     Private ReadOnly _templatePart1Body As XCData = <![CDATA[
         <Trait("Category", "SkipWhenLiveUnitTesting")>
-        <SkippableFact>
+        %Fact
         Public Async Function %0ConvertAsync() As Task
-            Skip.IfNot(EnableRoslynTests)
-            Assert.True(Await Me.TestProcessDirectoryAsync(Path.Combine(GetRoslynRootDirectory(), "src", "%1")).ConfigureAwait(True), $"Failing file {_lastFileProcessed}")
+%SkipWithReason            Assert.True(Await Me.TestProcessDirectoryAsync(Path.Combine(GetRoslynRootDirectory(), "src", "%1")).ConfigureAwait(True), $"Failing file {_lastFileProcessed}")
         End Function
 ]]>
 
@@ -79,21 +80,7 @@ Namespace ConvertDirectory.Tests
 End Namespace
 ]]>
 
-    Private _currentBuffer As Control
-    Private _srcPath As String
-    Private _roslynPath As String
-
-    Private Property CurrentBuffer As Control
-        Get
-            Return _currentBuffer
-        End Get
-        Set(value As Control)
-            _currentBuffer = value
-            If value IsNot Nothing Then
-                _currentBuffer.Focus()
-            End If
-        End Set
-    End Property
+    Private _roslynRootDirectory As String
 
     Private Shared Function XCDataToString(Optional data As XCData = Nothing) As String
         Return data?.Value.Replace(vbLf, Environment.NewLine)
@@ -142,20 +129,13 @@ End Namespace
 
     Private Sub ContextMenuStrip1_Opening(sender As Object, e As CancelEventArgs) Handles ContextMenuStrip1.Opening
         Dim ContextMenu As ContextMenuStrip = CType(sender, ContextMenuStrip)
+        Dim sourceBuffer As RichTextBox = CType(Me.ContextMenuStrip1.SourceControl, RichTextBox)
 
-        If TypeOf Me.CurrentBuffer Is RichTextBox Then
-            Dim sourceBuffer As RichTextBox = CType(Me.CurrentBuffer, RichTextBox)
-            ContextMenu.Items(ContextMenu.IndexOf(NameOf(ContextMenuCopy))).Enabled = sourceBuffer.TextLength > 0 And sourceBuffer.SelectedText.Any
-            ContextMenu.Items(ContextMenu.IndexOf(NameOf(ContextMenuCut))).Enabled = sourceBuffer.TextLength > 0 And sourceBuffer.SelectedText.Any
-            ContextMenu.Items(ContextMenu.IndexOf(NameOf(ContextMenuPaste))).Enabled = sourceBuffer.CanPaste(DataFormats.GetFormat(DataFormats.Rtf)) OrElse sourceBuffer.CanPaste(DataFormats.GetFormat(DataFormats.Text))
-            ContextMenu.Items(ContextMenu.IndexOf(NameOf(ContextMenuRedo))).Enabled = sourceBuffer.CanRedo
-            ContextMenu.Items(ContextMenu.IndexOf(NameOf(ContextMenuUndo))).Enabled = sourceBuffer.CanUndo
-        Else
-            ContextMenu.Items(ContextMenu.IndexOf(NameOf(ContextMenuCut))).Enabled = False
-            ContextMenu.Items(ContextMenu.IndexOf(NameOf(ContextMenuPaste))).Enabled = False
-            ContextMenu.Items(ContextMenu.IndexOf(NameOf(ContextMenuRedo))).Enabled = False
-            ContextMenu.Items(ContextMenu.IndexOf(NameOf(ContextMenuUndo))).Enabled = False
-        End If
+        ContextMenu.Items(ContextMenu.IndexOf(NameOf(ContextMenuCopy))).Enabled = sourceBuffer.TextLength > 0 And sourceBuffer.SelectedText.Any
+        ContextMenu.Items(ContextMenu.IndexOf(NameOf(ContextMenuCut))).Enabled = sourceBuffer.TextLength > 0 And sourceBuffer.SelectedText.Any
+        ContextMenu.Items(ContextMenu.IndexOf(NameOf(ContextMenuPaste))).Enabled = sourceBuffer.CanPaste(DataFormats.GetFormat(DataFormats.Rtf)) OrElse sourceBuffer.CanPaste(DataFormats.GetFormat(DataFormats.Text))
+        ContextMenu.Items(ContextMenu.IndexOf(NameOf(ContextMenuRedo))).Enabled = sourceBuffer.CanRedo
+        ContextMenu.Items(ContextMenu.IndexOf(NameOf(ContextMenuUndo))).Enabled = sourceBuffer.CanUndo
     End Sub
 
     Private Sub ContextMenuUndo_Click(sender As Object, e As EventArgs) Handles ContextMenuUndo.Click
@@ -173,7 +153,17 @@ End Namespace
         Next
 
         For Each kvp As KeyValuePair(Of String, String) In nameParts
-            RTB.AppendText(XCDataToString(_templatePart1Body).Replace("%0", kvp.Key).Replace("%1", kvp.Value))
+            Dim factData As (IsSkipFact As Boolean, Reason As String) = (False, "")
+            Dim key As String = $"{kvp.Key}ConvertAsync"
+            SubStructure.TryGetValue(key, factData)
+            Dim fact As String = If(factData.IsSkipFact, "<SkippableFact>", "<Fact>")
+            Dim reason As String = If(factData.IsSkipFact, $", ""{factData.Reason}""", "Unknown")
+            Dim skipWithReason As String = If(factData.IsSkipFact, $"            Skip.IfNot(EnableRoslynTests{reason}){vbCrLf}", "")
+            RTB.AppendText(XCDataToString(_templatePart1Body).Replace("%0", kvp.Key) _
+                                                             .Replace("%1", kvp.Value) _
+                                                             .Replace("%Fact", fact) _
+                                                             .Replace("%SkipWithReason", skipWithReason)
+                                                             )
         Next
     End Sub
 
@@ -189,20 +179,30 @@ End Namespace
         Next
     End Sub
 
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles Me.Load
+
+    End Sub
+
     Private Function GetNamePart(n As TreeNode) As String
         Return String.Join("", Me.GetNameParts(n)).Replace(".", "")
     End Function
 
     Private Function GetNameParts(n As TreeNode) As String()
-        Dim relativePath As String = n.FullPath.Replace(_srcPath, "")
+        Dim relativePath As String = n.FullPath.Replace(_roslynRootDirectory, "")
         Return relativePath.Split("\", StringSplitOptions.RemoveEmptyEntries)
     End Function
+
+    Private Sub mnuClearHighLights_Click(sender As Object, e As EventArgs) Handles mnuClearHighLights.Click
+        Me.RichTextBox1.SelectAll()
+        Me.RichTextBox1.SelectionBackColor = Color.White
+        Me.RichTextBox1.ScrollToCaret()
+    End Sub
 
     Private Sub mnuFileSelectRootDirectory_Click(sender As Object, e As EventArgs) Handles mnuFileSelectRootDirectory.Click
         Dim SourceFolderName As String
         Using OFD As New FolderBrowserDialog
             With OFD
-                .Description = "Select root folder..."
+                .Description = "Select Code Converter root folder..."
                 .ShowNewFolderButton = False
                 If .ShowDialog(Me) <> DialogResult.OK Then
                     Exit Sub
@@ -218,16 +218,48 @@ End Namespace
                 Me.TreeView1.Nodes.Clear()
                 Me.TreeView1.Nodes.Add(.SelectedPath)
                 PopulateTreeView(.SelectedPath, Me.TreeView1.Nodes(0))
-                _srcPath = .SelectedPath
-                _roslynPath = Directory.GetParent(.SelectedPath).FullName
+                _roslynRootDirectory = .SelectedPath
             End With
         End Using
+
+        Me.GetTestSubs(Path.Combine(Directory.GetParent(_roslynRootDirectory).Parent.FullName, "CSharpToVB\CSharpToVB.Tests\Test\ConvertFolders\ConvertDirectoryTests.vb"))
+
         Me.TreeView1.ExpandAll()
         Me.RichTextBox1.Text = XCDataToString(_templatePart1)
         Me.CreateBody(Me.TreeView1, Me.RichTextBox1)
         Me.RichTextBox1.AppendText(XCDataToString(_templatePart2))
         Me.RichTextBox1.Select(0, 0)
         Me.RichTextBox1.ScrollToCaret()
+    End Sub
+
+    Private Sub GetTestSubs(TestFilePath As String)
+        Using reader As StreamReader = File.OpenText(TestFilePath)
+            Dim line As String = Nothing
+            Dim isSkipableFact As Boolean
+            Dim functionName As String
+            While reader.Peek() <> -1
+                line = reader.ReadLine().Trim
+                isSkipableFact = line.StartsWith("<SkippableFact>")
+
+                Dim reason As String = ""
+                If isSkipableFact OrElse line.StartsWith("<Fact>") Then
+                    ' Get Function Line
+                    line = reader.ReadLine().Trim
+                    line = line.Replace("Public Async Function", "").Trim
+                    functionName = line.Replace("() As Task", "").Trim
+                    If isSkipableFact Then
+                        line = reader.ReadLine().Trim
+                        reason = line.Replace("Skip.IfNot(EnableRoslynTests", "").Replace(", ", "").Replace(")", "").Replace("""", "")
+                        reader.ReadLine() ' Skip Assert.True line
+                        reader.ReadLine() ' Skip End lien
+                    End If
+                    If functionName.Contains(" ") Then
+                        Stop
+                    End If
+                    SubStructure.Add(functionName, (isSkipableFact, reason))
+                End If
+            End While
+        End Using
     End Sub
 
     Private Sub TabControl1_SelectedIndexChanged(sender As Object, e As EventArgs) Handles TabControl1.SelectedIndexChanged
@@ -243,6 +275,24 @@ End Namespace
             Case Else
                 Stop
         End Select
+    End Sub
+
+    Private Sub TreeView1_AfterSelect(sender As Object, e As TreeViewEventArgs) Handles TreeView1.AfterSelect
+        ' Determine by checking the Node property of the TreeViewEventArgs.
+        Dim csFileList As String() = Directory.GetFiles(e.Node.FullPath, "*.cs")
+        ' Determine by checking the Node property of the TreeViewEventArgs.
+        '  e.Node
+        Dim name As String = Me.GetNamePart(Me.TreeView1.SelectedNode)
+        If Me.TreeView1.SelectedNode.Level = 0 OrElse Me.TreeView1.SelectedNode.Nodes.Count > 0 Then
+            Exit Sub
+        End If
+        Dim start As Integer = Me.RichTextBox1.Find(name)
+        If start < 0 Then
+            Stop
+        End If
+        Me.RichTextBox1.Select(start, name.Length)
+        Me.RichTextBox1.SelectionBackColor = Color.Orange
+        Me.RichTextBox1.ScrollToCaret()
     End Sub
 
     Private Sub TreeView1_BeforeExpand(sender As Object, e As TreeViewCancelEventArgs) Handles TreeView1.BeforeExpand
@@ -268,28 +318,10 @@ End Namespace
                 'Here, Expand is use for add Expanding option "[+]" on folder
                 FldrNode.Nodes.Add("Expand")
             Next
-
         Catch ex As Exception
 
         End Try
 
-    End Sub
-    Private Sub TreeView1_AfterSelect(sender As Object, e As TreeViewEventArgs) Handles TreeView1.AfterSelect
-        ' Determine by checking the Node property of the TreeViewEventArgs.
-        Dim csFileList As String() = Directory.GetFiles(e.Node.FullPath, "*.cs")
-        ' Determine by checking the Node property of the TreeViewEventArgs.
-        '  e.Node
-        Dim name As String = Me.GetNamePart(Me.TreeView1.SelectedNode)
-        If Me.TreeView1.SelectedNode.Level = 0 OrElse Me.TreeView1.SelectedNode.Nodes.Count > 0 Then
-            Exit Sub
-        End If
-        Dim start As Integer = Me.RichTextBox1.Find(name)
-        If start < 0 Then
-            Stop
-        End If
-        Me.RichTextBox1.Select(start, name.Length)
-        Me.RichTextBox1.SelectionBackColor = Color.Orange
-        Me.RichTextBox1.ScrollToCaret()
     End Sub
 
     Public Shared Sub PopulateTreeView(directoryValue As String, parentNode As TreeNode)
@@ -310,9 +342,5 @@ End Namespace
         End Try
     End Sub
 
-    Private Sub mnuClearHighLights_Click(sender As Object, e As EventArgs) Handles mnuClearHighLights.Click
-        Me.RichTextBox1.SelectAll()
-        Me.RichTextBox1.SelectionBackColor = Color.White
-        Me.RichTextBox1.ScrollToCaret()
-    End Sub
 End Class
+
