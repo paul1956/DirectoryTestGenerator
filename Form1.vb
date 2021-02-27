@@ -4,9 +4,19 @@
 
 Imports System.ComponentModel
 Imports System.IO
+Imports System.Text
 
 Public Class Form1
-    Public SubStructure As New Dictionary(Of String, (IsSkipFact As Boolean, Reason As String))
+
+    Private ReadOnly _skipableDictionary As New SortedDictionary(Of String, (isSkipable As Boolean, Reason As String))
+
+    Private ReadOnly _templateFactBody As XCData = <![CDATA[
+        <Trait("Category", "SkipWhenLiveUnitTesting")>
+        <Fact>
+        Public Async Function %0ConvertAsync() As Task
+            Assert.True(Await Me.TestProcessDirectoryAsync(Path.Combine(GetRoslynRootDirectory(), "src", "%1")).ConfigureAwait(True), $"Failing file {_lastFileProcessed}")
+        End Function
+]]>
 
     Private ReadOnly _templatePart1 As XCData = <![CDATA[' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
@@ -26,15 +36,15 @@ Imports Xunit
 
 Namespace ConvertDirectory.Tests
 
-    ''' <summary>
-    ''' Return False to skip test
-    ''' </summary>
     <TestClass()> Public Class TestCompile
         Private _lastFileProcessed As String
 
+        ''' <summary>
+        ''' Return False to skip test
+        ''' </summary>
         Public Shared ReadOnly Property EnableRoslynTests() As Boolean
             Get
-                Return Directory.Exists(GetRoslynRootDirectory) AndAlso Environment.GetEnvironmentVariable("EnableRoslynTests") = "True"
+                Return Directory.Exists(GetRoslynRootDirectory) AndAlso (Debugger.IsAttached OrElse Environment.GetEnvironmentVariable("EnableRoslynTests") = "True")
             End Get
         End Property
 
@@ -65,19 +75,21 @@ Namespace ConvertDirectory.Tests
             End Using
             Return Task.FromResult(True)
         End Function
-        ]]>
 
-    Private ReadOnly _templatePart1Body As XCData = <![CDATA[
-        <Trait("Category", "SkipWhenLiveUnitTesting")>
-        %Fact
-        Public Async Function %0ConvertAsync() As Task
-%SkipWithReason            Assert.True(Await Me.TestProcessDirectoryAsync(Path.Combine(GetRoslynRootDirectory(), "src", "%1")).ConfigureAwait(True), $"Failing file {_lastFileProcessed}")
-        End Function
 ]]>
 
     Private ReadOnly _templatePart2 As XCData = <![CDATA[
     End Class
 End Namespace
+]]>
+
+    Private ReadOnly _templateSkipableBody As XCData = <![CDATA[
+        <Trait("Category", "SkipWhenLiveUnitTesting")>
+        <SkippableFact>
+        Public Async Function %0ConvertAsync() As Task
+            Skip.IfNot(EnableRoslynTests, "%Reason")
+            Assert.True(Await Me.TestProcessDirectoryAsync(Path.Combine(GetRoslynRootDirectory(), "src", "%1")).ConfigureAwait(True), $"Failing file {_lastFileProcessed}")
+        End Function
 ]]>
 
     Private _roslynRootDirectory As String
@@ -152,19 +164,53 @@ End Namespace
             Me.CreateBodyRecursive(n, RTB, nameParts)
         Next
 
+        Dim factBody As New StringBuilder
+        factBody.AppendLine()
+        Dim skipableBodySlower As New StringBuilder
+        skipableBodySlower.AppendLine()
+        Dim skipableBodySlowest As New StringBuilder
+        skipableBodySlowest.AppendLine()
+        Dim skipableBodyUnknown As New StringBuilder
+
         For Each kvp As KeyValuePair(Of String, String) In nameParts
             Dim factData As (IsSkipFact As Boolean, Reason As String) = (False, "")
             Dim key As String = $"{kvp.Key}ConvertAsync"
-            SubStructure.TryGetValue(key, factData)
-            Dim fact As String = If(factData.IsSkipFact, "<SkippableFact>", "<Fact>")
-            Dim reason As String = If(factData.IsSkipFact, $", ""{factData.Reason}""", "Unknown")
-            Dim skipWithReason As String = If(factData.IsSkipFact, $"            Skip.IfNot(EnableRoslynTests{reason}){vbCrLf}", "")
-            RTB.AppendText(XCDataToString(_templatePart1Body).Replace("%0", kvp.Key) _
-                                                             .Replace("%1", kvp.Value) _
-                                                             .Replace("%Fact", fact) _
-                                                             .Replace("%SkipWithReason", skipWithReason)
-                                                             )
+            _skipableDictionary.TryGetValue(key, factData)
+            If factData.IsSkipFact Then
+                Select Case factData.Reason
+                    Case "Slower Test"
+                        skipableBodySlower.Append(XCDataToString(_templateSkipableBody).Replace("%0", kvp.Key) _
+                                                                               .Replace("%1", kvp.Value) _
+                                                                               .Replace("%Reason", factData.Reason))
+                    Case "Slowest Test"
+                        skipableBodySlowest.Append(XCDataToString(_templateSkipableBody).Replace("%0", kvp.Key) _
+                                                                               .Replace("%1", kvp.Value) _
+                                                                               .Replace("%Reason", factData.Reason))
+                    Case Else
+                        skipableBodyUnknown.Append(XCDataToString(_templateSkipableBody).Replace("%0", kvp.Key) _
+                                                                               .Replace("%1", kvp.Value) _
+                                                                               .Replace("%Reason", "Unknown"))
+
+                End Select
+            Else
+                factBody.Append(XCDataToString(_templateFactBody).Replace("%0", kvp.Key) _
+                                                                 .Replace("%1", kvp.Value))
+            End If
         Next
+        RTB.AppendText($"#Region ""Facts""")
+        RTB.AppendText(factBody.ToString)
+        RTB.AppendText($"{vbCrLf}#End Region{vbCrLf}")
+        If skipableBodyUnknown.Length > 0 Then
+            RTB.AppendText($"{vbCrLf}#Region ""SkippableFact Unknown Reason""{vbCrLf}")
+            RTB.AppendText(skipableBodyUnknown.ToString)
+            RTB.AppendText($"{vbCrLf}#End Region{vbCrLf}")
+        End If
+        RTB.AppendText($"{vbCrLf}#Region ""SkippableFact Slower Reason""{vbCrLf}")
+        RTB.AppendText(skipableBodySlower.ToString)
+        RTB.AppendText($"{vbCrLf}#End Region{vbCrLf}")
+        RTB.AppendText($"{vbCrLf}#Region ""SkippableFact Slowest Reason""{vbCrLf}")
+        RTB.AppendText(skipableBodySlowest.ToString)
+        RTB.AppendText($"{vbCrLf}#End Region{vbCrLf}")
     End Sub
 
     Private Sub CreateBodyRecursive(n As TreeNode, RTB As RichTextBox, ByRef NameParts As SortedDictionary(Of String, String))
@@ -191,6 +237,36 @@ End Namespace
         Dim relativePath As String = n.FullPath.Replace(_roslynRootDirectory, "")
         Return relativePath.Split("\", StringSplitOptions.RemoveEmptyEntries)
     End Function
+
+    Private Sub GetTestSubs(TestFilePath As String)
+        Using reader As StreamReader = File.OpenText(TestFilePath)
+            Dim line As String = Nothing
+            Dim isSkippableFact As Boolean
+            Dim functionName As String
+            While reader.Peek() <> -1
+                line = reader.ReadLine().Trim
+                isSkippableFact = line.StartsWith("<SkippableFact>")
+
+                Dim reason As String = ""
+                If isSkippableFact OrElse line.StartsWith("<Fact>") Then
+                    ' Get Function Line
+                    line = reader.ReadLine().Trim
+                    line = line.Replace("Public Async Function", "").Trim
+                    functionName = line.Replace("() As Task", "").Trim
+                    If isSkippableFact Then
+                        line = reader.ReadLine().Trim
+                        reason = line.Replace("Skip.IfNot(EnableRoslynTests", "").Replace(", ", "").Replace(")", "").Replace("""", "")
+                        reader.ReadLine() ' Skip Assert.True line
+                        reader.ReadLine() ' Skip End lien
+                    End If
+                    If functionName.Contains(" ") Then
+                        Stop
+                    End If
+                    _skipableDictionary.Add(functionName, (isSkippableFact, reason))
+                End If
+            End While
+        End Using
+    End Sub
 
     Private Sub mnuClearHighLights_Click(sender As Object, e As EventArgs) Handles mnuClearHighLights.Click
         Me.RichTextBox1.SelectAll()
@@ -230,36 +306,6 @@ End Namespace
         Me.RichTextBox1.AppendText(XCDataToString(_templatePart2))
         Me.RichTextBox1.Select(0, 0)
         Me.RichTextBox1.ScrollToCaret()
-    End Sub
-
-    Private Sub GetTestSubs(TestFilePath As String)
-        Using reader As StreamReader = File.OpenText(TestFilePath)
-            Dim line As String = Nothing
-            Dim isSkipableFact As Boolean
-            Dim functionName As String
-            While reader.Peek() <> -1
-                line = reader.ReadLine().Trim
-                isSkipableFact = line.StartsWith("<SkippableFact>")
-
-                Dim reason As String = ""
-                If isSkipableFact OrElse line.StartsWith("<Fact>") Then
-                    ' Get Function Line
-                    line = reader.ReadLine().Trim
-                    line = line.Replace("Public Async Function", "").Trim
-                    functionName = line.Replace("() As Task", "").Trim
-                    If isSkipableFact Then
-                        line = reader.ReadLine().Trim
-                        reason = line.Replace("Skip.IfNot(EnableRoslynTests", "").Replace(", ", "").Replace(")", "").Replace("""", "")
-                        reader.ReadLine() ' Skip Assert.True line
-                        reader.ReadLine() ' Skip End lien
-                    End If
-                    If functionName.Contains(" ") Then
-                        Stop
-                    End If
-                    SubStructure.Add(functionName, (isSkipableFact, reason))
-                End If
-            End While
-        End Using
     End Sub
 
     Private Sub TabControl1_SelectedIndexChanged(sender As Object, e As EventArgs) Handles TabControl1.SelectedIndexChanged
@@ -343,4 +389,3 @@ End Namespace
     End Sub
 
 End Class
-
