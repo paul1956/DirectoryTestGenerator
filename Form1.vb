@@ -31,7 +31,6 @@ Namespace ConvertDirectory.Tests
 ]]>
 
     Private ReadOnly _templatePart2 As XCData = <![CDATA[
-    End Class
 End Namespace
 ]]>
 
