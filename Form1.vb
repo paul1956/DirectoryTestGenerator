@@ -132,6 +132,8 @@ End Namespace
         skipableBodySlower.AppendLine()
         Dim skipableBodySlowest As New StringBuilder
         skipableBodySlowest.AppendLine()
+        Dim skipableBodyOver1Minute As New StringBuilder
+        skipableBodyOver1Minute.AppendLine()
         Dim skipableBodyUnknown As New StringBuilder
 
         For Each kvp As KeyValuePair(Of String, String) In nameParts
@@ -146,6 +148,10 @@ End Namespace
                                                                                .Replace("%Reason", factData.Reason))
                     Case "Slowest Test"
                         skipableBodySlowest.Append(XCDataToString(_templateSkipableBody).Replace("%0", kvp.Key) _
+                                                                               .Replace("%1", kvp.Value) _
+                                                                               .Replace("%Reason", factData.Reason))
+                    Case "Over 1 Minute Test"
+                        skipableBodyOver1Minute.Append(XCDataToString(_templateSkipableBody).Replace("%0", kvp.Key) _
                                                                                .Replace("%1", kvp.Value) _
                                                                                .Replace("%Reason", factData.Reason))
                     Case Else
@@ -165,6 +171,7 @@ End Namespace
         End If
         Me.AppendBodyIntoRTB(Me.RichTextBoxSlower, "SlowerSpeedTests", skipableBodySlower)
         Me.AppendBodyIntoRTB(Me.RichTextBoxSlowest, "SlowestSpeedTests", skipableBodySlowest)
+        Me.AppendBodyIntoRTB(Me.RichTextBoxOver1Minute, "Over1MinuteSpeedTests", skipableBodyOver1Minute)
     End Sub
 
     Private Sub CreateBodyRecursive(n As TreeNode, ByRef NameParts As SortedDictionary(Of String, String))
@@ -183,6 +190,7 @@ End Namespace
         _testRTBs.AddRange({Me.RichTextBoxFast,
                             Me.RichTextBoxSlower,
                             Me.RichTextBoxSlowest,
+                            Me.RichTextBoxOver1Minute,
                             Me.RichTextBoxUnknown})
     End Sub
 

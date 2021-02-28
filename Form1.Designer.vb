@@ -37,6 +37,8 @@ Partial Class Form1
         Me.RichTextBoxSlower = New System.Windows.Forms.RichTextBox()
         Me.SlowestTabPage = New System.Windows.Forms.TabPage()
         Me.RichTextBoxSlowest = New System.Windows.Forms.RichTextBox()
+        Me.Over1MinuteTabPage = New System.Windows.Forms.TabPage()
+        Me.RichTextBoxOver1Minute = New System.Windows.Forms.RichTextBox()
         Me.UnknownTabPage = New System.Windows.Forms.TabPage()
         Me.RichTextBoxUnknown = New System.Windows.Forms.RichTextBox()
         Me.TreeView1 = New System.Windows.Forms.TreeView()
@@ -59,6 +61,7 @@ Partial Class Form1
         Me.FastTabPage.SuspendLayout()
         Me.SlowerTabPage.SuspendLayout()
         Me.SlowestTabPage.SuspendLayout()
+        Me.Over1MinuteTabPage.SuspendLayout()
         Me.UnknownTabPage.SuspendLayout()
         Me.TabPage2.SuspendLayout()
         Me.TabPage3.SuspendLayout()
@@ -124,6 +127,7 @@ Partial Class Form1
         Me.TabControl2.Controls.Add(Me.FastTabPage)
         Me.TabControl2.Controls.Add(Me.SlowerTabPage)
         Me.TabControl2.Controls.Add(Me.SlowestTabPage)
+        Me.TabControl2.Controls.Add(Me.Over1MinuteTabPage)
         Me.TabControl2.Controls.Add(Me.UnknownTabPage)
         Me.TabControl2.Dock = System.Windows.Forms.DockStyle.Fill
         Me.TabControl2.Location = New System.Drawing.Point(533, 3)
@@ -151,6 +155,7 @@ Partial Class Form1
         Me.RichTextBoxFast.Size = New System.Drawing.Size(1042, 358)
         Me.RichTextBoxFast.TabIndex = 0
         Me.RichTextBoxFast.Text = ""
+        Me.RichTextBoxFast.WordWrap = False
         '
         'SlowerTabPage
         '
@@ -171,6 +176,7 @@ Partial Class Form1
         Me.RichTextBoxSlower.Size = New System.Drawing.Size(1042, 358)
         Me.RichTextBoxSlower.TabIndex = 0
         Me.RichTextBoxSlower.Text = ""
+        Me.RichTextBoxSlower.WordWrap = False
         '
         'SlowestTabPage
         '
@@ -191,6 +197,28 @@ Partial Class Form1
         Me.RichTextBoxSlowest.Size = New System.Drawing.Size(1042, 358)
         Me.RichTextBoxSlowest.TabIndex = 1
         Me.RichTextBoxSlowest.Text = ""
+        Me.RichTextBoxSlowest.WordWrap = False
+        '
+        'Over1MinuteTabPage
+        '
+        Me.Over1MinuteTabPage.Controls.Add(Me.RichTextBoxOver1Minute)
+        Me.Over1MinuteTabPage.Location = New System.Drawing.Point(4, 24)
+        Me.Over1MinuteTabPage.Name = "Over1MinuteTabPage"
+        Me.Over1MinuteTabPage.Padding = New System.Windows.Forms.Padding(3)
+        Me.Over1MinuteTabPage.Size = New System.Drawing.Size(1048, 364)
+        Me.Over1MinuteTabPage.TabIndex = 4
+        Me.Over1MinuteTabPage.Text = "Over 1 Minute"
+        Me.Over1MinuteTabPage.UseVisualStyleBackColor = True
+        '
+        'RichTextBoxOver1Minute
+        '
+        Me.RichTextBoxOver1Minute.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.RichTextBoxOver1Minute.Location = New System.Drawing.Point(3, 3)
+        Me.RichTextBoxOver1Minute.Name = "RichTextBoxOver1Minute"
+        Me.RichTextBoxOver1Minute.Size = New System.Drawing.Size(1042, 358)
+        Me.RichTextBoxOver1Minute.TabIndex = 0
+        Me.RichTextBoxOver1Minute.Text = ""
+        Me.RichTextBoxOver1Minute.WordWrap = False
         '
         'UnknownTabPage
         '
@@ -211,6 +239,7 @@ Partial Class Form1
         Me.RichTextBoxUnknown.Size = New System.Drawing.Size(1042, 358)
         Me.RichTextBoxUnknown.TabIndex = 0
         Me.RichTextBoxUnknown.Text = ""
+        Me.RichTextBoxUnknown.WordWrap = False
         '
         'TreeView1
         '
@@ -239,6 +268,7 @@ Partial Class Form1
         Me.RichTextBox2.Size = New System.Drawing.Size(1586, 392)
         Me.RichTextBox2.TabIndex = 0
         Me.RichTextBox2.Text = ""
+        Me.RichTextBox2.WordWrap = False
         '
         'TabPage3
         '
@@ -259,6 +289,7 @@ Partial Class Form1
         Me.RichTextBox4.Size = New System.Drawing.Size(1586, 392)
         Me.RichTextBox4.TabIndex = 0
         Me.RichTextBox4.Text = ""
+        Me.RichTextBox4.WordWrap = False
         '
         'ContextMenuStrip1
         '
@@ -346,6 +377,7 @@ Partial Class Form1
         Me.FastTabPage.ResumeLayout(False)
         Me.SlowerTabPage.ResumeLayout(False)
         Me.SlowestTabPage.ResumeLayout(False)
+        Me.Over1MinuteTabPage.ResumeLayout(False)
         Me.UnknownTabPage.ResumeLayout(False)
         Me.TabPage2.ResumeLayout(False)
         Me.TabPage3.ResumeLayout(False)
@@ -383,4 +415,6 @@ Partial Class Form1
     Friend WithEvents RichTextBoxSlower As RichTextBox
     Friend WithEvents RichTextBoxSlowest As RichTextBox
     Friend WithEvents RichTextBoxUnknown As RichTextBox
+    Friend WithEvents Over1MinuteTabPage As TabPage
+    Friend WithEvents RichTextBoxOver1Minute As RichTextBox
 End Class
