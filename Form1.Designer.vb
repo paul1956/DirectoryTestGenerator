@@ -34,8 +34,6 @@ Partial Class Form1
         Me.TreeView1 = New System.Windows.Forms.TreeView()
         Me.TabPage2 = New System.Windows.Forms.TabPage()
         Me.RichTextBox2 = New System.Windows.Forms.RichTextBox()
-        Me.TabPage3 = New System.Windows.Forms.TabPage()
-        Me.RichTextBox3 = New System.Windows.Forms.RichTextBox()
         Me.TabPage4 = New System.Windows.Forms.TabPage()
         Me.RichTextBox4 = New System.Windows.Forms.RichTextBox()
         Me.ContextMenuStrip1 = New System.Windows.Forms.ContextMenuStrip(Me.components)
@@ -50,7 +48,6 @@ Partial Class Form1
         Me.TabControl1.SuspendLayout()
         Me.TabPage1.SuspendLayout()
         Me.TabPage2.SuspendLayout()
-        Me.TabPage3.SuspendLayout()
         Me.TabPage4.SuspendLayout()
         Me.ContextMenuStrip1.SuspendLayout()
         Me.SuspendLayout()
@@ -89,7 +86,6 @@ Partial Class Form1
         '
         Me.TabControl1.Controls.Add(Me.TabPage1)
         Me.TabControl1.Controls.Add(Me.TabPage2)
-        Me.TabControl1.Controls.Add(Me.TabPage3)
         Me.TabControl1.Controls.Add(Me.TabPage4)
         Me.TabControl1.Dock = System.Windows.Forms.DockStyle.Fill
         Me.TabControl1.Location = New System.Drawing.Point(0, 24)
@@ -147,25 +143,6 @@ Partial Class Form1
         Me.RichTextBox2.Size = New System.Drawing.Size(1586, 392)
         Me.RichTextBox2.TabIndex = 0
         Me.RichTextBox2.Text = ""
-        '
-        'TabPage3
-        '
-        Me.TabPage3.Controls.Add(Me.RichTextBox3)
-        Me.TabPage3.Location = New System.Drawing.Point(4, 24)
-        Me.TabPage3.Name = "TabPage3"
-        Me.TabPage3.Size = New System.Drawing.Size(1592, 398)
-        Me.TabPage3.TabIndex = 2
-        Me.TabPage3.Text = "Body Template"
-        Me.TabPage3.UseVisualStyleBackColor = True
-        '
-        'RichTextBox3
-        '
-        Me.RichTextBox3.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.RichTextBox3.Location = New System.Drawing.Point(0, 0)
-        Me.RichTextBox3.Name = "RichTextBox3"
-        Me.RichTextBox3.Size = New System.Drawing.Size(1592, 398)
-        Me.RichTextBox3.TabIndex = 0
-        Me.RichTextBox3.Text = ""
         '
         'TabPage4
         '
@@ -270,7 +247,6 @@ Partial Class Form1
         Me.TabControl1.ResumeLayout(False)
         Me.TabPage1.ResumeLayout(False)
         Me.TabPage2.ResumeLayout(False)
-        Me.TabPage3.ResumeLayout(False)
         Me.TabPage4.ResumeLayout(False)
         Me.ContextMenuStrip1.ResumeLayout(False)
         Me.ResumeLayout(False)
@@ -282,11 +258,9 @@ Partial Class Form1
     Friend WithEvents TabControl1 As TabControl
     Friend WithEvents TabPage1 As TabPage
     Friend WithEvents TabPage2 As TabPage
-    Friend WithEvents TabPage3 As TabPage
     Friend WithEvents TabPage4 As TabPage
     Friend WithEvents RichTextBox1 As RichTextBox
     Friend WithEvents RichTextBox2 As RichTextBox
-    Friend WithEvents RichTextBox3 As RichTextBox
     Friend WithEvents RichTextBox4 As RichTextBox
     Friend WithEvents mnuFile As ToolStripMenuItem
     Friend WithEvents mnuFileSelectRootDirectory As ToolStripMenuItem

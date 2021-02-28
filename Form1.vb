@@ -49,6 +49,14 @@ End Namespace
         Return data?.Value.Replace(vbLf, Environment.NewLine)
     End Function
 
+    Private Sub AppendBodyIntoRTB(RTB As RichTextBox, ClassName As String, Body As StringBuilder)
+        RTB.AppendText(XCDataToString(_templatePart1))
+        RTB.AppendText($"         <TestClass()>{vbCrLf}         Public Class {ClassName}")
+        RTB.AppendText(Body.ToString)
+        RTB.AppendText($"{vbCrLf}        End Class{vbCrLf}")
+        RTB.AppendText(XCDataToString(_templatePart2))
+    End Sub
+
     Private Sub ContextMenuCopy_Click(sender As Object, e As EventArgs) Handles ContextMenuCopy.Click
         If TypeOf Me.ContextMenuStrip1.SourceControl Is RichTextBox Then
             CType(Me.ContextMenuStrip1.SourceControl, RichTextBox).Copy()
@@ -112,7 +120,7 @@ End Namespace
     Private Sub CreateBody(aTreeView As TreeView, RTB As RichTextBox)
         Dim nameParts As New SortedDictionary(Of String, String)
         For Each n As TreeNode In aTreeView.Nodes(0).Nodes
-            Me.CreateBodyRecursive(n, RTB, nameParts)
+            Me.CreateBodyRecursive(n, nameParts)
         Next
 
         Dim factBody As New StringBuilder
@@ -148,23 +156,16 @@ End Namespace
                                                                  .Replace("%1", kvp.Value))
             End If
         Next
-        RTB.AppendText($"         <TestClass()>{vbCrLf}         Public Class FastTests")
-        RTB.AppendText(factBody.ToString)
-        RTB.AppendText($"{vbCrLf}        End Class{vbCrLf}")
+        RTB.Clear()
+        Me.AppendBodyIntoRTB(RTB, "FastTests", factBody)
         If skipableBodyUnknown.Length > 0 Then
-            RTB.AppendText($"{vbCrLf}         <TestClass()>{vbCrLf}         Public Class UnknownSpeedTests")
-            RTB.AppendText(skipableBodyUnknown.ToString)
-            RTB.AppendText($"{vbCrLf}        End Class{vbCrLf}")
+            Me.AppendBodyIntoRTB(RTB, "UnknownSpeedTests", skipableBodyUnknown)
         End If
-        RTB.AppendText($"{vbCrLf}         <TestClass()>{vbCrLf}         Public Class SlowerSpeedTests")
-        RTB.AppendText(skipableBodySlower.ToString)
-        RTB.AppendText($"{vbCrLf}        End Class{vbCrLf}")
-        RTB.AppendText($"{vbCrLf}         <TestClass()>{vbCrLf}         Public Class SlowestSpeedTests")
-        RTB.AppendText(skipableBodySlowest.ToString)
-        RTB.AppendText($"{vbCrLf}        End Class{vbCrLf}")
+        Me.AppendBodyIntoRTB(RTB, "SlowerSpeedTests", skipableBodySlower)
+        Me.AppendBodyIntoRTB(RTB, "SlowestSpeedTests", skipableBodySlowest)
     End Sub
 
-    Private Sub CreateBodyRecursive(n As TreeNode, RTB As RichTextBox, ByRef NameParts As SortedDictionary(Of String, String))
+    Private Sub CreateBodyRecursive(n As TreeNode, ByRef NameParts As SortedDictionary(Of String, String))
         If Directory.GetFiles(n.FullPath, "*.cs").Any Then
             Dim namePart As String = Me.GetNamePart(n)
             Dim pathPart As String = String.Join(""", """, Me.GetNameParts(n))
@@ -172,12 +173,8 @@ End Namespace
 
         End If
         For Each aNode As TreeNode In n.Nodes
-            Me.CreateBodyRecursive(aNode, RTB, NameParts)
+            Me.CreateBodyRecursive(aNode, NameParts)
         Next
-    End Sub
-
-    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles Me.Load
-
     End Sub
 
     Private Function GetNamePart(n As TreeNode) As String
@@ -190,33 +187,37 @@ End Namespace
     End Function
 
     Private Sub GetTestSubs(TestFilePath As String)
-        Using reader As StreamReader = File.OpenText(TestFilePath)
-            Dim line As String = Nothing
-            Dim isSkippableFact As Boolean
-            Dim functionName As String
-            While reader.Peek() <> -1
-                line = reader.ReadLine().Trim
-                isSkippableFact = line.StartsWith("<SkippableFact>")
+        _skipableDictionary.Clear()
 
-                Dim reason As String = ""
-                If isSkippableFact OrElse line.StartsWith("<Fact>") Then
-                    ' Get Function Line
+        For Each testFile As String In Directory.EnumerateFiles(TestFilePath)
+            Using reader As StreamReader = File.OpenText(testFile)
+                Dim line As String = Nothing
+                Dim isSkippableFact As Boolean
+                Dim functionName As String
+                While reader.Peek() <> -1
                     line = reader.ReadLine().Trim
-                    line = line.Replace("Public Async Function", "").Trim
-                    functionName = line.Replace("() As Task", "").Trim
-                    If isSkippableFact Then
+                    isSkippableFact = line.StartsWith("<SkippableFact>")
+
+                    Dim reason As String = ""
+                    If isSkippableFact OrElse line.StartsWith("<Fact>") Then
+                        ' Get Function Line
                         line = reader.ReadLine().Trim
-                        reason = line.Replace("Skip.IfNot(EnableRoslynTests", "").Replace(", ", "").Replace(")", "").Replace("""", "")
-                        reader.ReadLine() ' Skip Assert.True line
-                        reader.ReadLine() ' Skip End lien
+                        line = line.Replace("Public Async Function", "").Trim
+                        functionName = line.Replace("() As Task", "").Trim
+                        If isSkippableFact Then
+                            line = reader.ReadLine().Trim
+                            reason = line.Replace("Skip.IfNot(EnableRoslynTests", "").Replace(", ", "").Replace(")", "").Replace("""", "")
+                            reader.ReadLine() ' Skip Assert.True line
+                            reader.ReadLine() ' Skip End lien
+                        End If
+                        If functionName.Contains(" ") Then
+                            Stop
+                        End If
+                        _skipableDictionary.Add(functionName, (isSkippableFact, reason))
                     End If
-                    If functionName.Contains(" ") Then
-                        Stop
-                    End If
-                    _skipableDictionary.Add(functionName, (isSkippableFact, reason))
-                End If
-            End While
-        End Using
+                End While
+            End Using
+        Next
     End Sub
 
     Private Sub mnuClearHighLights_Click(sender As Object, e As EventArgs) Handles mnuClearHighLights.Click
@@ -249,12 +250,10 @@ End Namespace
             End With
         End Using
 
-        Me.GetTestSubs(Path.Combine(Directory.GetParent(_roslynRootDirectory).Parent.FullName, "CSharpToVB\CSharpToVB.Tests\Test\ConvertFolders\ConvertDirectoryTests.vb"))
+        Me.GetTestSubs(Path.Combine(Directory.GetParent(_roslynRootDirectory).Parent.FullName, "CSharpToVB\CSharpToVB.Tests\Test\ConvertFolders\"))
 
         Me.TreeView1.ExpandAll()
-        Me.RichTextBox1.Text = XCDataToString(_templatePart1)
         Me.CreateBody(Me.TreeView1, Me.RichTextBox1)
-        Me.RichTextBox1.AppendText(XCDataToString(_templatePart2))
         Me.RichTextBox1.Select(0, 0)
         Me.RichTextBox1.ScrollToCaret()
     End Sub
@@ -263,10 +262,9 @@ End Namespace
         Dim RTB As RichTextBox = CType(Me.TabControl1.SelectedTab.Controls(0), RichTextBox)
         Select Case Me.TabControl1.SelectedTab.Text
             Case "TreeView"
+                Me.CreateBody(Me.TreeView1, RTB)
             Case "Header Template"
                 RTB.Text = XCDataToString(_templatePart1)
-            Case "Body Template"
-                Me.CreateBody(Me.TreeView1, RTB)
             Case "Footer Template"
                 RTB.AppendText(XCDataToString(_templatePart2))
             Case Else
