@@ -43,6 +43,7 @@ End Namespace
             End Function
 ]]>
 
+    Private ReadOnly _testRTBs As New List(Of RichTextBox)
     Private _roslynRootDirectory As String
 
     Private Shared Function XCDataToString(Optional data As XCData = Nothing) As String
@@ -50,11 +51,13 @@ End Namespace
     End Function
 
     Private Sub AppendBodyIntoRTB(RTB As RichTextBox, ClassName As String, Body As StringBuilder)
-        RTB.AppendText(XCDataToString(_templatePart1))
+        RTB.Text = XCDataToString(_templatePart1)
         RTB.AppendText($"         <TestClass()>{vbCrLf}         Public Class {ClassName}")
         RTB.AppendText(Body.ToString)
         RTB.AppendText($"{vbCrLf}        End Class{vbCrLf}")
         RTB.AppendText(XCDataToString(_templatePart2))
+        RTB.Select(0, 0)
+        RTB.ScrollToCaret()
     End Sub
 
     Private Sub ContextMenuCopy_Click(sender As Object, e As EventArgs) Handles ContextMenuCopy.Click
@@ -117,7 +120,7 @@ End Namespace
     End Sub
 
     ' Call the procedure using the top nodes of the TreeView.
-    Private Sub CreateBody(aTreeView As TreeView, RTB As RichTextBox)
+    Private Sub CreateBody(aTreeView As TreeView)
         Dim nameParts As New SortedDictionary(Of String, String)
         For Each n As TreeNode In aTreeView.Nodes(0).Nodes
             Me.CreateBodyRecursive(n, nameParts)
@@ -156,13 +159,12 @@ End Namespace
                                                                  .Replace("%1", kvp.Value))
             End If
         Next
-        RTB.Clear()
-        Me.AppendBodyIntoRTB(RTB, "FastTests", factBody)
+        Me.AppendBodyIntoRTB(Me.RichTextBoxFast, "FastTests", factBody)
         If skipableBodyUnknown.Length > 0 Then
-            Me.AppendBodyIntoRTB(RTB, "UnknownSpeedTests", skipableBodyUnknown)
+            Me.AppendBodyIntoRTB(Me.RichTextBoxUnknown, "UnknownSpeedTests", skipableBodyUnknown)
         End If
-        Me.AppendBodyIntoRTB(RTB, "SlowerSpeedTests", skipableBodySlower)
-        Me.AppendBodyIntoRTB(RTB, "SlowestSpeedTests", skipableBodySlowest)
+        Me.AppendBodyIntoRTB(Me.RichTextBoxSlower, "SlowerSpeedTests", skipableBodySlower)
+        Me.AppendBodyIntoRTB(Me.RichTextBoxSlowest, "SlowestSpeedTests", skipableBodySlowest)
     End Sub
 
     Private Sub CreateBodyRecursive(n As TreeNode, ByRef NameParts As SortedDictionary(Of String, String))
@@ -175,6 +177,13 @@ End Namespace
         For Each aNode As TreeNode In n.Nodes
             Me.CreateBodyRecursive(aNode, NameParts)
         Next
+    End Sub
+
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles Me.Load
+        _testRTBs.AddRange({Me.RichTextBoxFast,
+                            Me.RichTextBoxSlower,
+                            Me.RichTextBoxSlowest,
+                            Me.RichTextBoxUnknown})
     End Sub
 
     Private Function GetNamePart(n As TreeNode) As String
@@ -220,12 +229,6 @@ End Namespace
         Next
     End Sub
 
-    Private Sub mnuClearHighLights_Click(sender As Object, e As EventArgs) Handles mnuClearHighLights.Click
-        Me.RichTextBox1.SelectAll()
-        Me.RichTextBox1.SelectionBackColor = Color.White
-        Me.RichTextBox1.ScrollToCaret()
-    End Sub
-
     Private Sub mnuFileSelectRootDirectory_Click(sender As Object, e As EventArgs) Handles mnuFileSelectRootDirectory.Click
         Dim SourceFolderName As String
         Using OFD As New FolderBrowserDialog
@@ -253,16 +256,13 @@ End Namespace
         Me.GetTestSubs(Path.Combine(Directory.GetParent(_roslynRootDirectory).Parent.FullName, "CSharpToVB\CSharpToVB.Tests\Test\ConvertFolders\"))
 
         Me.TreeView1.ExpandAll()
-        Me.CreateBody(Me.TreeView1, Me.RichTextBox1)
-        Me.RichTextBox1.Select(0, 0)
-        Me.RichTextBox1.ScrollToCaret()
+        Me.CreateBody(Me.TreeView1)
     End Sub
 
     Private Sub TabControl1_SelectedIndexChanged(sender As Object, e As EventArgs) Handles TabControl1.SelectedIndexChanged
         Dim RTB As RichTextBox = CType(Me.TabControl1.SelectedTab.Controls(0), RichTextBox)
         Select Case Me.TabControl1.SelectedTab.Text
             Case "TreeView"
-                Me.CreateBody(Me.TreeView1, RTB)
             Case "Header Template"
                 RTB.Text = XCDataToString(_templatePart1)
             Case "Footer Template"
@@ -281,13 +281,18 @@ End Namespace
         If Me.TreeView1.SelectedNode.Level = 0 OrElse Me.TreeView1.SelectedNode.Nodes.Count > 0 Then
             Exit Sub
         End If
-        Dim start As Integer = Me.RichTextBox1.Find(name)
-        If start < 0 Then
-            Stop
-        End If
-        Me.RichTextBox1.Select(start, name.Length)
-        Me.RichTextBox1.SelectionBackColor = Color.Orange
-        Me.RichTextBox1.ScrollToCaret()
+        For Each rtb As RichTextBox In _testRTBs
+            Dim tabName As String = $"{rtb.Name.Replace("RichTextBox", "")}TabPage"
+            Dim start As Integer = rtb.Find(name)
+            If start >= 0 Then
+                Me.TabControl2.SelectedTab = Me.TabControl2.TabPages.Item(tabName)
+                rtb.Select(start, name.Length)
+                rtb.SelectionBackColor = Color.Orange
+                rtb.ScrollToCaret()
+                Exit Sub
+            End If
+        Next
+        Stop
     End Sub
 
     Private Sub TreeView1_BeforeExpand(sender As Object, e As TreeViewCancelEventArgs) Handles TreeView1.BeforeExpand

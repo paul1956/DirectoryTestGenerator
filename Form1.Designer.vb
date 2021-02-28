@@ -30,11 +30,19 @@ Partial Class Form1
         Me.mnuClearHighLights = New System.Windows.Forms.ToolStripMenuItem()
         Me.TabControl1 = New System.Windows.Forms.TabControl()
         Me.TabPage1 = New System.Windows.Forms.TabPage()
-        Me.RichTextBox1 = New System.Windows.Forms.RichTextBox()
+        Me.TabControl2 = New System.Windows.Forms.TabControl()
+        Me.FastTabPage = New System.Windows.Forms.TabPage()
+        Me.RichTextBoxFast = New System.Windows.Forms.RichTextBox()
+        Me.SlowerTabPage = New System.Windows.Forms.TabPage()
+        Me.RichTextBoxSlower = New System.Windows.Forms.RichTextBox()
+        Me.SlowestTabPage = New System.Windows.Forms.TabPage()
+        Me.RichTextBoxSlowest = New System.Windows.Forms.RichTextBox()
+        Me.UnknownTabPage = New System.Windows.Forms.TabPage()
+        Me.RichTextBoxUnknown = New System.Windows.Forms.RichTextBox()
         Me.TreeView1 = New System.Windows.Forms.TreeView()
         Me.TabPage2 = New System.Windows.Forms.TabPage()
         Me.RichTextBox2 = New System.Windows.Forms.RichTextBox()
-        Me.TabPage4 = New System.Windows.Forms.TabPage()
+        Me.TabPage3 = New System.Windows.Forms.TabPage()
         Me.RichTextBox4 = New System.Windows.Forms.RichTextBox()
         Me.ContextMenuStrip1 = New System.Windows.Forms.ContextMenuStrip(Me.components)
         Me.ContextMenuUndo = New System.Windows.Forms.ToolStripMenuItem()
@@ -47,8 +55,13 @@ Partial Class Form1
         Me.MenuStrip1.SuspendLayout()
         Me.TabControl1.SuspendLayout()
         Me.TabPage1.SuspendLayout()
+        Me.TabControl2.SuspendLayout()
+        Me.FastTabPage.SuspendLayout()
+        Me.SlowerTabPage.SuspendLayout()
+        Me.SlowestTabPage.SuspendLayout()
+        Me.UnknownTabPage.SuspendLayout()
         Me.TabPage2.SuspendLayout()
-        Me.TabPage4.SuspendLayout()
+        Me.TabPage3.SuspendLayout()
         Me.ContextMenuStrip1.SuspendLayout()
         Me.SuspendLayout()
         '
@@ -86,7 +99,7 @@ Partial Class Form1
         '
         Me.TabControl1.Controls.Add(Me.TabPage1)
         Me.TabControl1.Controls.Add(Me.TabPage2)
-        Me.TabControl1.Controls.Add(Me.TabPage4)
+        Me.TabControl1.Controls.Add(Me.TabPage3)
         Me.TabControl1.Dock = System.Windows.Forms.DockStyle.Fill
         Me.TabControl1.Location = New System.Drawing.Point(0, 24)
         Me.TabControl1.Name = "TabControl1"
@@ -96,7 +109,7 @@ Partial Class Form1
         '
         'TabPage1
         '
-        Me.TabPage1.Controls.Add(Me.RichTextBox1)
+        Me.TabPage1.Controls.Add(Me.TabControl2)
         Me.TabPage1.Controls.Add(Me.TreeView1)
         Me.TabPage1.Location = New System.Drawing.Point(4, 24)
         Me.TabPage1.Name = "TabPage1"
@@ -106,15 +119,98 @@ Partial Class Form1
         Me.TabPage1.Text = "TreeView"
         Me.TabPage1.UseVisualStyleBackColor = True
         '
-        'RichTextBox1
+        'TabControl2
         '
-        Me.RichTextBox1.Dock = System.Windows.Forms.DockStyle.Right
-        Me.RichTextBox1.Location = New System.Drawing.Point(539, 3)
-        Me.RichTextBox1.Name = "RichTextBox1"
-        Me.RichTextBox1.Size = New System.Drawing.Size(1050, 392)
-        Me.RichTextBox1.TabIndex = 1
-        Me.RichTextBox1.Text = ""
-        Me.RichTextBox1.WordWrap = False
+        Me.TabControl2.Controls.Add(Me.FastTabPage)
+        Me.TabControl2.Controls.Add(Me.SlowerTabPage)
+        Me.TabControl2.Controls.Add(Me.SlowestTabPage)
+        Me.TabControl2.Controls.Add(Me.UnknownTabPage)
+        Me.TabControl2.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.TabControl2.Location = New System.Drawing.Point(533, 3)
+        Me.TabControl2.Name = "TabControl2"
+        Me.TabControl2.SelectedIndex = 0
+        Me.TabControl2.Size = New System.Drawing.Size(1056, 392)
+        Me.TabControl2.TabIndex = 1
+        '
+        'FastTabPage
+        '
+        Me.FastTabPage.Controls.Add(Me.RichTextBoxFast)
+        Me.FastTabPage.Location = New System.Drawing.Point(4, 24)
+        Me.FastTabPage.Name = "FastTabPage"
+        Me.FastTabPage.Padding = New System.Windows.Forms.Padding(3)
+        Me.FastTabPage.Size = New System.Drawing.Size(1048, 364)
+        Me.FastTabPage.TabIndex = 0
+        Me.FastTabPage.Text = "Fast Tests"
+        Me.FastTabPage.UseVisualStyleBackColor = True
+        '
+        'RichTextBoxFast
+        '
+        Me.RichTextBoxFast.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.RichTextBoxFast.Location = New System.Drawing.Point(3, 3)
+        Me.RichTextBoxFast.Name = "RichTextBoxFast"
+        Me.RichTextBoxFast.Size = New System.Drawing.Size(1042, 358)
+        Me.RichTextBoxFast.TabIndex = 0
+        Me.RichTextBoxFast.Text = ""
+        '
+        'SlowerTabPage
+        '
+        Me.SlowerTabPage.Controls.Add(Me.RichTextBoxSlower)
+        Me.SlowerTabPage.Location = New System.Drawing.Point(4, 24)
+        Me.SlowerTabPage.Name = "SlowerTabPage"
+        Me.SlowerTabPage.Padding = New System.Windows.Forms.Padding(3)
+        Me.SlowerTabPage.Size = New System.Drawing.Size(1048, 364)
+        Me.SlowerTabPage.TabIndex = 1
+        Me.SlowerTabPage.Text = "Slower Tests"
+        Me.SlowerTabPage.UseVisualStyleBackColor = True
+        '
+        'RichTextBoxSlower
+        '
+        Me.RichTextBoxSlower.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.RichTextBoxSlower.Location = New System.Drawing.Point(3, 3)
+        Me.RichTextBoxSlower.Name = "RichTextBoxSlower"
+        Me.RichTextBoxSlower.Size = New System.Drawing.Size(1042, 358)
+        Me.RichTextBoxSlower.TabIndex = 0
+        Me.RichTextBoxSlower.Text = ""
+        '
+        'SlowestTabPage
+        '
+        Me.SlowestTabPage.Controls.Add(Me.RichTextBoxSlowest)
+        Me.SlowestTabPage.Location = New System.Drawing.Point(4, 24)
+        Me.SlowestTabPage.Name = "SlowestTabPage"
+        Me.SlowestTabPage.Padding = New System.Windows.Forms.Padding(3)
+        Me.SlowestTabPage.Size = New System.Drawing.Size(1048, 364)
+        Me.SlowestTabPage.TabIndex = 2
+        Me.SlowestTabPage.Text = "Slowest Test"
+        Me.SlowestTabPage.UseVisualStyleBackColor = True
+        '
+        'RichTextBoxSlowest
+        '
+        Me.RichTextBoxSlowest.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.RichTextBoxSlowest.Location = New System.Drawing.Point(3, 3)
+        Me.RichTextBoxSlowest.Name = "RichTextBoxSlowest"
+        Me.RichTextBoxSlowest.Size = New System.Drawing.Size(1042, 358)
+        Me.RichTextBoxSlowest.TabIndex = 1
+        Me.RichTextBoxSlowest.Text = ""
+        '
+        'UnknownTabPage
+        '
+        Me.UnknownTabPage.Controls.Add(Me.RichTextBoxUnknown)
+        Me.UnknownTabPage.Location = New System.Drawing.Point(4, 24)
+        Me.UnknownTabPage.Name = "UnknownTabPage"
+        Me.UnknownTabPage.Padding = New System.Windows.Forms.Padding(3)
+        Me.UnknownTabPage.Size = New System.Drawing.Size(1048, 364)
+        Me.UnknownTabPage.TabIndex = 3
+        Me.UnknownTabPage.Text = "Unknown Speed Tests"
+        Me.UnknownTabPage.UseVisualStyleBackColor = True
+        '
+        'RichTextBoxUnknown
+        '
+        Me.RichTextBoxUnknown.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.RichTextBoxUnknown.Location = New System.Drawing.Point(3, 3)
+        Me.RichTextBoxUnknown.Name = "RichTextBoxUnknown"
+        Me.RichTextBoxUnknown.Size = New System.Drawing.Size(1042, 358)
+        Me.RichTextBoxUnknown.TabIndex = 0
+        Me.RichTextBoxUnknown.Text = ""
         '
         'TreeView1
         '
@@ -144,16 +240,16 @@ Partial Class Form1
         Me.RichTextBox2.TabIndex = 0
         Me.RichTextBox2.Text = ""
         '
-        'TabPage4
+        'TabPage3
         '
-        Me.TabPage4.Controls.Add(Me.RichTextBox4)
-        Me.TabPage4.Location = New System.Drawing.Point(4, 24)
-        Me.TabPage4.Name = "TabPage4"
-        Me.TabPage4.Padding = New System.Windows.Forms.Padding(3)
-        Me.TabPage4.Size = New System.Drawing.Size(1592, 398)
-        Me.TabPage4.TabIndex = 3
-        Me.TabPage4.Text = "Footer Template"
-        Me.TabPage4.UseVisualStyleBackColor = True
+        Me.TabPage3.Controls.Add(Me.RichTextBox4)
+        Me.TabPage3.Location = New System.Drawing.Point(4, 24)
+        Me.TabPage3.Name = "TabPage3"
+        Me.TabPage3.Padding = New System.Windows.Forms.Padding(3)
+        Me.TabPage3.Size = New System.Drawing.Size(1592, 398)
+        Me.TabPage3.TabIndex = 3
+        Me.TabPage3.Text = "Footer Template"
+        Me.TabPage3.UseVisualStyleBackColor = True
         '
         'RichTextBox4
         '
@@ -246,8 +342,13 @@ Partial Class Form1
         Me.MenuStrip1.PerformLayout()
         Me.TabControl1.ResumeLayout(False)
         Me.TabPage1.ResumeLayout(False)
+        Me.TabControl2.ResumeLayout(False)
+        Me.FastTabPage.ResumeLayout(False)
+        Me.SlowerTabPage.ResumeLayout(False)
+        Me.SlowestTabPage.ResumeLayout(False)
+        Me.UnknownTabPage.ResumeLayout(False)
         Me.TabPage2.ResumeLayout(False)
-        Me.TabPage4.ResumeLayout(False)
+        Me.TabPage3.ResumeLayout(False)
         Me.ContextMenuStrip1.ResumeLayout(False)
         Me.ResumeLayout(False)
         Me.PerformLayout()
@@ -258,8 +359,7 @@ Partial Class Form1
     Friend WithEvents TabControl1 As TabControl
     Friend WithEvents TabPage1 As TabPage
     Friend WithEvents TabPage2 As TabPage
-    Friend WithEvents TabPage4 As TabPage
-    Friend WithEvents RichTextBox1 As RichTextBox
+    Friend WithEvents TabPage3 As TabPage
     Friend WithEvents RichTextBox2 As RichTextBox
     Friend WithEvents RichTextBox4 As RichTextBox
     Friend WithEvents mnuFile As ToolStripMenuItem
@@ -274,4 +374,13 @@ Partial Class Form1
     Friend WithEvents ContextMenuStrip1 As ContextMenuStrip
     Friend WithEvents ContextMenuUndo As ToolStripMenuItem
     Friend WithEvents mnuClearHighLights As ToolStripMenuItem
+    Friend WithEvents TabControl2 As TabControl
+    Friend WithEvents FastTabPage As TabPage
+    Friend WithEvents SlowerTabPage As TabPage
+    Friend WithEvents SlowestTabPage As TabPage
+    Friend WithEvents UnknownTabPage As TabPage
+    Friend WithEvents RichTextBoxFast As RichTextBox
+    Friend WithEvents RichTextBoxSlower As RichTextBox
+    Friend WithEvents RichTextBoxSlowest As RichTextBox
+    Friend WithEvents RichTextBoxUnknown As RichTextBox
 End Class
