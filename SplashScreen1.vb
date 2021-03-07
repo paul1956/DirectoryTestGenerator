@@ -1,6 +1,7 @@
 ﻿' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
+Imports System.IO
 
 Public NotInheritable Class SplashScreen1
 
@@ -8,7 +9,7 @@ Public NotInheritable Class SplashScreen1
     '  of the Project Designer ("Properties" under the "Project" menu).
 
 
-    Private Sub SplashScreen1_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
+    Private Sub SplashScreen1_Load(ByVal sender As Object, ByVal e As EventArgs) Handles Me.Load
         'Set up the dialog text at runtime according to the application's assembly information.  
 
         'TODO: Customize the application's assembly information in the "Application" pane of the project 
@@ -19,7 +20,7 @@ Public NotInheritable Class SplashScreen1
             Me.ApplicationTitle.Text = My.Application.Info.Title
         Else
             'If the application title is missing, use the application name, without the extension
-            Me.ApplicationTitle.Text = IO.Path.GetFileNameWithoutExtension(My.Application.Info.AssemblyName)
+            Me.ApplicationTitle.Text = Path.GetFileNameWithoutExtension(My.Application.Info.AssemblyName)
         End If
 
         'Format the version information using the text set into the Version control at design time as the
